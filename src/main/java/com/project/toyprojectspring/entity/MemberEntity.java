@@ -6,6 +6,7 @@ import org.hibernate.annotations.GenericGenerator;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
@@ -24,7 +25,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(uniqueConstraints = { @UniqueConstraint(columnNames = "email") })
+@Table(uniqueConstraints = { @UniqueConstraint(columnNames = "email") }, name = "Member")
 public class MemberEntity {
 
     @Id
@@ -47,11 +48,11 @@ public class MemberEntity {
     @ElementCollection
     private List<String> skills;
 
-    @OneToMany(mappedBy = "member")
+    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
     @JsonManagedReference
     private List<PostEntity> posts;
 
-    @OneToMany(mappedBy = "member")
+    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
     @JsonManagedReference
     private List<ApplyEntity> applies;
 }

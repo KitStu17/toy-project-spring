@@ -2,9 +2,14 @@ package com.project.toyprojectspring.dto;
 
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
+
 import com.project.toyprojectspring.entity.ApplyEntity;
 import com.project.toyprojectspring.entity.MemberEntity;
 import com.project.toyprojectspring.entity.PostEntity;
+import com.project.toyprojectspring.repository.ApplyRepository;
+import com.project.toyprojectspring.repository.MemberRepository;
+import com.project.toyprojectspring.repository.PostRepository;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -23,8 +28,6 @@ public class MemberDTO {
     private String password;
     private String position;
     private List<String> skills;
-    private List<PostEntity> posts;
-    private List<ApplyEntity> applies;
 
     public static MemberEntity toEntity(final MemberDTO dto) {
         MemberEntity entity = new MemberEntity();
@@ -33,8 +36,6 @@ public class MemberDTO {
         entity.setPassword(dto.getPassword());
         entity.setPosition(dto.getPosition());
         entity.setSkills(dto.getSkills());
-        entity.setPosts(dto.getPosts());
-        entity.setApplies(dto.getApplies());
 
         return entity;
     }

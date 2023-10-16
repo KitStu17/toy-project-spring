@@ -16,22 +16,16 @@ import lombok.NoArgsConstructor;
 public class ApplyDTO {
     private Long id;
     private String state;
-    private MemberEntity member;
-    private PostEntity post;
 
     public ApplyDTO(final ApplyEntity entity) {
         this.id = entity.getId();
         this.state = entity.getState();
-        this.member = entity.getMember();
-        this.post = entity.getPost();
     }
 
     public static ApplyEntity toEntity(final ApplyDTO dto) {
         ApplyEntity entity = new ApplyEntity();
         entity.setId(dto.getId());
         entity.setState(dto.getState());
-        entity.setMember(dto.getMember());
-        entity.setPost(dto.getPost());
         return entity;
     }
 

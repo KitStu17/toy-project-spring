@@ -18,9 +18,9 @@ public interface MemberRepository extends JpaRepository<MemberEntity, String> {
 
     MemberEntity findByEmailAndPassword(String email, String password);
 
-    @Query("SELECT t.posts FROM Member t WHERE t.id = :memberId")
+    @Query(value = "SELECT * FROM Post t WHERE t.member_id = ?1", nativeQuery = true)
     List<PostEntity> findPostsByMemberId(String memberId);
 
-    @Query("SELECT t.applicants FROM Member t WHERE t.id = :memberId")
+    @Query(value = "SELECT * FROM Apply_Entity t WHERE t.member_id = ?1", nativeQuery = true)
     List<ApplyEntity> findAppliesByMemberId(String memberId);
 }

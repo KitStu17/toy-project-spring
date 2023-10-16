@@ -1,5 +1,6 @@
 package com.project.toyprojectspring.service;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -7,6 +8,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.project.toyprojectspring.entity.MemberEntity;
+import com.project.toyprojectspring.entity.PostEntity;
 import com.project.toyprojectspring.repository.MemberRepository;
 
 import lombok.extern.slf4j.Slf4j;
@@ -32,6 +34,12 @@ public class MemberService {
         }
 
         return memberRepository.save(memberEntity);
+    }
+
+    // 내가 쓴 모집 글 가져오기
+    public List<PostEntity> findPostsByMemberId(String memberId) {
+        List<PostEntity> entities = memberRepository.findPostsByMemberId(memberId);
+        return entities;
     }
 
     // 회원 정보 갱신

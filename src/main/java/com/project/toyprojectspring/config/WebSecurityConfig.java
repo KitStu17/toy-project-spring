@@ -49,7 +49,8 @@ public class WebSecurityConfig {
         http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
         http.authorizeHttpRequests(auth -> {
             try {
-                auth.requestMatchers(new AntPathRequestMatcher("/**")).permitAll();
+                auth.requestMatchers(new AntPathRequestMatcher("/**"),
+                        new AntPathRequestMatcher("/auth/**")).permitAll();
             } catch (Exception e) {
                 e.printStackTrace();
             }

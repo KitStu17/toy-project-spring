@@ -46,11 +46,22 @@ public class PostController {
     @Autowired
     private MailService mailService;
 
+    // 현재 날짜를 반환하는 코드
     private String nowDate() {
         LocalDate now = LocalDate.now();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd");
         String formatedNow = now.format(formatter);
         return formatedNow;
+    }
+
+    // 두 List에 중복된 값이 존재하는지 확인하는 코드
+    private boolean hasCommonElements(List<String> list1, List<String> list2) {
+        for (String element : list1) {
+            if (list2.contains(element)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     // 모집 글 작성
@@ -73,7 +84,7 @@ public class PostController {
             List<PostEntity> entities = postService.addPost(postEntity);
             List<PostEntity> newEntities = new ArrayList<PostEntity>();
             for (PostEntity entity : entities) {
-                if (entity.getState() == "모집 중") {
+                if (entity.getState().equals("모집 중")) {
                     newEntities.add(entity);
                 }
             }
@@ -92,13 +103,55 @@ public class PostController {
         }
     }
 
-    // 모집 글 목록 가져오기
+    // 모집 글 목록 가져오기(로그인한 유저)
+    // 로그인한 유저만 실행 가능
+    @GetMapping("/retrieveLoginPost")
+    public ResponseEntity<?> retrieveLoginPost(@AuthenticationPrincipal String memberId) {
+        // 모집 글 중 상태가 "모집 중"인 것만 가져오기
+        List<PostEntity> entities = postService.retrievePost();
+
+        // 로그인한 회원의 관심 스택(filter) 가져오기
+        MemberEntity member = memberService.findById(memberId)
+                .orElseThrow(() -> new EntityNotFoundException("Member not found"));
+        List<String> filter = member.getSkills();
+
+        // 회원의 관심 스택에 포함되는 모집 글만 가져오기
+        entities.removeIf((item) -> !hasCommonElements(filter, item.getStacks()));
+
+        // entities를 dtos로 스트림 변환
+        List<PostDTO> dtos = entities.stream().map(PostDTO::new).collect(Collectors.toList());
+
+        // ResponseDTO 생성
+        ResponseDTO<PostDTO> response = ResponseDTO.<PostDTO>builder().data(dtos).build();
+
+        return ResponseEntity.ok().body(response);
+
+    }
+
+    // 모집 글 목록 가져오기(로그인하지 않은 유저)
     // 로그인 하지 않아도 실행 가능
     @GetMapping("/retrievePost")
     public ResponseEntity<?> retrievePostList(@AuthenticationPrincipal String memberId) {
 
         // 모집 글 중 상태가 "모집 중"인 것만 가져오기
         List<PostEntity> entities = postService.retrievePost();
+
+        // entities를 dtos로 스트림 변환
+        List<PostDTO> dtos = entities.stream().map(PostDTO::new).collect(Collectors.toList());
+
+        // ResponseDTO 생성
+        ResponseDTO<PostDTO> response = ResponseDTO.<PostDTO>builder().data(dtos).build();
+
+        return ResponseEntity.ok().body(response);
+    }
+
+    // 내가 작성한 모집 글 보기
+    @GetMapping("/myPost")
+    public ResponseEntity<?> getMyPost(@AuthenticationPrincipal String memberId) {
+        // 로그인한 회원이 작성한 게시물 가져오기
+        MemberEntity member = memberService.findById(memberId)
+                .orElseThrow(() -> new EntityNotFoundException("Member not found"));
+        List<PostEntity> entities = member.getPosts();
 
         // entities를 dtos로 스트림 변환
         List<PostDTO> dtos = entities.stream().map(PostDTO::new).collect(Collectors.toList());
@@ -121,7 +174,7 @@ public class PostController {
 
             List<PostEntity> newEntities = new ArrayList<PostEntity>();
             for (PostEntity entity : entities) {
-                if (entity.getState() == "모집 중") {
+                if (entity.getState().equals("모집 중")) {
                     newEntities.add(entity);
                 }
             }

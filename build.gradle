@@ -25,7 +25,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	compileOnly 'org.projectlombok:lombok'
-	runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
+	runtimeOnly 'com.h2database:h2'
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	implementation group: 'com.google.guava', name: 'guava', version: '32.1.2-jre'
@@ -54,6 +54,10 @@ dependencies {
 
 	// https://mvnrepository.com/artifact/org.mariadb.jdbc/mariadb-java-client
 	implementation group: 'org.mariadb.jdbc', name: 'mariadb-java-client', version: '2.7.3'
+
+	// https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind
+	implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.15.2'
+
 }
 
 tasks.named('test') {

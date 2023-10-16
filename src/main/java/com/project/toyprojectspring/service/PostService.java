@@ -61,14 +61,12 @@ public class PostService {
             List<PostEntity> entities = postRepository.findAll(Sort.by(Sort.Direction.DESC, "postDate"));
             List<PostEntity> newEntities = new ArrayList<PostEntity>();
             for (PostEntity entity : entities) {
-                if (entity.getState() == "모집 중" && (entity.getDue().after(date))) {
+                if (entity.getState().equals("모집 중") && (entity.getDue().before(date))) {
                     entity.setState("진행 중");
                     postRepository.save(entity);
                 }
-                if (entity.getState() == "모집 중") {
-                    newEntities.add(entity);
-                }
             }
+            newEntities = postRepository.findByRecruitPosts("모집 중");
             return newEntities;
         } catch (Exception e) {
             return new ArrayList<PostEntity>();

@@ -24,11 +24,9 @@ public class PostDTO {
     private int recruit;
     private int recruitState;
     private int priod;
-    private String desc;
+    private String descript;
     private String state;
-    private List<String> skills;
-    private MemberEntity member;
-    private List<ApplyEntity> applies;
+    private List<String> stacks;
 
     public PostDTO(final PostEntity entity) {
         this.id = entity.getId();
@@ -38,11 +36,9 @@ public class PostDTO {
         this.recruit = entity.getRecruit();
         this.recruitState = entity.getRecruitState();
         this.priod = entity.getPriod();
-        this.desc = entity.getDesc();
+        this.descript = entity.getDescript();
         this.state = entity.getState();
-        this.skills = entity.getSkills();
-        this.member = entity.getMember();
-        this.applies = entity.getApplies();
+        this.stacks = entity.getStacks();
     }
 
     public static PostEntity toEntity(final PostDTO dto) {
@@ -54,11 +50,9 @@ public class PostDTO {
         entity.setRecruit(dto.getRecruit());
         entity.setRecruitState(dto.getRecruitState());
         entity.setPriod(dto.getPriod());
-        entity.setDesc(dto.getDesc());
+        entity.setDescript(dto.getDescript());
         entity.setState(dto.getState());
-        entity.setSkills(dto.getSkills());
-        entity.setMember(dto.getMember());
-        entity.setApplies(dto.getApplies());
+        entity.setStacks(dto.getStacks());
         return entity;
     }
 }

@@ -87,12 +87,13 @@ public class ApplyController {
     public ResponseEntity<?> retrieveWriterApply(@AuthenticationPrincipal String memberId,
             @PathVariable("postId") String postId) {
         // repository에서 memberId가 일치하는 entity 가져오기
-        List<ApplyEntity> entities = applyService.retrieveWriterApply(postId);
+        PostEntity post = postService.findById(postId);
+        List<ApplyEntity> entities = post.getApplies();
         List<ApplyEntity> newEntities = new ArrayList<ApplyEntity>();
 
         // 참여 실패한 참여 요청을 제외하고 가져오기
         for (ApplyEntity entity : entities) {
-            if (entity.getState() != "참여 실패") {
+            if (!entity.getState().equals("참여 실패")) {
                 newEntities.add(entity);
             }
         }
@@ -111,7 +112,9 @@ public class ApplyController {
     @GetMapping("/applyListRequest")
     public ResponseEntity<?> retrieveRequestApply(@AuthenticationPrincipal String memberId) {
         // repository에서 memberId가 일치하는 entity 가져오기
-        List<ApplyEntity> entities = applyService.retrieveRequestApply(memberId);
+        MemberEntity member = memberService.findById(memberId)
+                .orElseThrow(() -> new EntityNotFoundException("Member not found"));
+        List<ApplyEntity> entities = member.getApplies();
 
         // entities를 dtos로 스트림 변환
         List<ApplyDTO> dtos = entities.stream().map(ApplyDTO::new).collect(Collectors.toList());
@@ -138,7 +141,9 @@ public class ApplyController {
             }
 
             for (ApplyEntity entity : requestEntities) {
-                applyService.updateApply(entity);
+                ApplyEntity newEntity = applyService.findById(entity.getId());
+                newEntity.setState(entity.getState());
+                applyService.updateApply(newEntity);
             }
 
             List<ApplyEntity> entities = applyService.retrieveWriterApply(postId);

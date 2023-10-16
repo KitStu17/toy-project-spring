@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -45,6 +46,7 @@ public class MemberController {
     private PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     // JWT 토큰으로 회원 정보 검색
+    // 디버그용
     @GetMapping("/getMember")
     public ResponseEntity<?> retrieveMember(@AuthenticationPrincipal String memberId) {
         try {
@@ -60,7 +62,8 @@ public class MemberController {
 
     // 회원 정보 수정
     @PutMapping("/updateMember")
-    public ResponseEntity<?> updateMember(@AuthenticationPrincipal String memberId, @RequestBody MemberDTO memberDTO) {
+    public ResponseEntity<?> updateMember(@AuthenticationPrincipal String memberId,
+            @RequestBody MemberDTO memberDTO) {
         try {
             MemberEntity member = memberService.findById(memberId)
                     .orElseThrow(() -> new EntityNotFoundException("Member not found"));
@@ -139,7 +142,8 @@ public class MemberController {
 
     // 회원 탈퇴
     @DeleteMapping("/deleteMember")
-    public ResponseEntity<?> deleteMember(@AuthenticationPrincipal String memberId, @RequestBody MemberDTO memberDTO) {
+    public ResponseEntity<?> deleteMember(@AuthenticationPrincipal String memberId,
+            @Validated @RequestBody MemberDTO memberDTO) {
         try {
             MemberEntity entity = MemberDTO.toEntity(memberDTO);
 

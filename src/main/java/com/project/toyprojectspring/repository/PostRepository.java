@@ -13,6 +13,9 @@ import com.project.toyprojectspring.entity.PostEntity;
 public interface PostRepository extends JpaRepository<PostEntity, String> {
     List<PostEntity> findByMemberId(String memberId);
 
-    @Query("SELECT t.applicants FROM Post t WHERE t.id = :postId")
+    @Query(value = "SELECT t.applicants FROM Post t WHERE t.id = :postId", nativeQuery = true)
     List<ApplyEntity> findAppliesByPostId(String postId);
+
+    @Query(value = "SELECT * FROM Post t WHERE t.state = :state", nativeQuery = true)
+    List<PostEntity> findByRecruitPosts(String state);
 }

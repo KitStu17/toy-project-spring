@@ -8,6 +8,7 @@ import org.hibernate.annotations.GenericGenerator;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
@@ -47,19 +48,19 @@ public class PostEntity {
     private int priod;
 
     @Column(columnDefinition = "TEXT")
-    private String desc;
+    private String descript;
 
     private String state;
 
     @ElementCollection
-    private List<String> skills;
+    private List<String> stacks;
 
     @ManyToOne
     @JoinColumn(name = "member_id")
     @JsonBackReference
     private MemberEntity member;
 
-    @OneToMany(mappedBy = "post")
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL)
     @JsonManagedReference
     private List<ApplyEntity> applies;
 }
