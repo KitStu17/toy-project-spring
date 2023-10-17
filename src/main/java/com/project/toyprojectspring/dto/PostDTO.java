@@ -26,6 +26,7 @@ public class PostDTO {
     private int priod;
     private String descript;
     private String state;
+    private String ownerName;
     private List<String> stacks;
 
     public PostDTO(final PostEntity entity) {
@@ -38,6 +39,7 @@ public class PostDTO {
         this.priod = entity.getPriod();
         this.descript = entity.getDescript();
         this.state = entity.getState();
+        this.ownerName = entity.getMember().getName();
         this.stacks = entity.getStacks();
     }
 

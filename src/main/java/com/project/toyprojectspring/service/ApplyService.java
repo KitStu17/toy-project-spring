@@ -32,6 +32,17 @@ public class ApplyService {
         return appliesRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Post not found"));
     }
 
+    // 이미 참가 요청을 보낸 적이 있는 모집 글인지 판단
+    public Boolean existsByPost(PostEntity post, String memberId) {
+        List<ApplyEntity> entities = post.getApplies();
+        for (ApplyEntity apply : entities) {
+            if (apply.getMember().getId().equals(memberId)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     // 참여 요청 추가
     public ApplyEntity addApply(final ApplyEntity entity) {
         if (entity == null) {

@@ -16,10 +16,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.project.toyprojectspring.dto.ApplyDTO;
+import com.project.toyprojectspring.dto.MemberDTO;
 import com.project.toyprojectspring.dto.ResponseDTO;
 import com.project.toyprojectspring.entity.ApplyEntity;
 import com.project.toyprojectspring.entity.MemberEntity;
 import com.project.toyprojectspring.entity.PostEntity;
+import com.project.toyprojectspring.repository.PostRepository;
 import com.project.toyprojectspring.service.ApplyService;
 import com.project.toyprojectspring.service.MailService;
 import com.project.toyprojectspring.service.MemberService;
@@ -45,6 +47,9 @@ public class ApplyController {
     @Autowired
     private MailService mailService;
 
+    @Autowired
+    private PostRepository postRepository;
+
     // 참여 요청 추가
     // 로그인한 사용자만 사용 가능
     @PostMapping("/addApply/{postId}")
@@ -57,23 +62,32 @@ public class ApplyController {
             PostEntity postEntity = postService.findById(postId);
 
             applyEntity.setPost(postEntity);
+            applyEntity.setOwnerEmail(memberEntity.getEmail());
+            applyEntity.setOwnerName(memberEntity.getName());
+            applyEntity.setProjectTitle(postEntity.getTitle());
             applyEntity.setMember(memberEntity);
 
-            // DB에 참여 요청 정보 저장
-            ApplyEntity entity = applyService.addApply(applyEntity);
+            if (!applyService.existsByPost(postEntity, memberId)) {
+                // DB에 참여 요청 정보 저장
+                ApplyEntity entity = applyService.addApply(applyEntity);
 
-            // 모집 글 작성자에게 이메일 전송
-            mailService.sendSimpleApplyMessage(memberEntity.getEmail(), postEntity, memberEntity);
+                // 모집 글 작성자에게 이메일 전송
+                mailService.sendSimpleApplyMessage(memberEntity.getEmail(), postEntity, memberEntity);
 
-            List<ApplyEntity> entities = new ArrayList<ApplyEntity>();
-            entities.add(entity);
+                List<ApplyEntity> entities = new ArrayList<ApplyEntity>();
+                entities.add(entity);
 
-            List<ApplyDTO> dtos = entities.stream().map(ApplyDTO::new).collect(Collectors.toList());
+                List<ApplyDTO> dtos = entities.stream().map(ApplyDTO::new).collect(Collectors.toList());
 
-            // ResponseDTO 생성
-            ResponseDTO<ApplyDTO> response = ResponseDTO.<ApplyDTO>builder().data(dtos).build();
+                // ResponseDTO 생성
+                ResponseDTO<ApplyDTO> response = ResponseDTO.<ApplyDTO>builder().data(dtos).build();
 
-            return ResponseEntity.ok().body(response);
+                return ResponseEntity.ok().body(response);
+            } else {
+                String error = "already applied";
+                ResponseDTO<ApplyDTO> response = ResponseDTO.<ApplyDTO>builder().error(error).build();
+                return ResponseEntity.badRequest().body(response);
+            }
         } catch (Exception e) {
             String error = e.getMessage();
             ResponseDTO<ApplyDTO> response = ResponseDTO.<ApplyDTO>builder().error(error).build();
@@ -91,11 +105,8 @@ public class ApplyController {
         List<ApplyEntity> entities = post.getApplies();
         List<ApplyEntity> newEntities = new ArrayList<ApplyEntity>();
 
-        // 참여 실패한 참여 요청을 제외하고 가져오기
         for (ApplyEntity entity : entities) {
-            if (!entity.getState().equals("참여 실패")) {
-                newEntities.add(entity);
-            }
+            newEntities.add(entity);
         }
 
         // entities를 dtos로 스트림 변환
@@ -114,10 +125,16 @@ public class ApplyController {
         // repository에서 memberId가 일치하는 entity 가져오기
         MemberEntity member = memberService.findById(memberId)
                 .orElseThrow(() -> new EntityNotFoundException("Member not found"));
+
+        List<MemberEntity> members = new ArrayList<MemberEntity>();
+        members.add(member);
         List<ApplyEntity> entities = member.getApplies();
 
         // entities를 dtos로 스트림 변환
         List<ApplyDTO> dtos = entities.stream().map(ApplyDTO::new).collect(Collectors.toList());
+
+        // List<MemberDTO> dtos =
+        // members.stream().map(MemberDTO::new).collect(Collectors.toList());
 
         // ResponseDTO 생성
         ResponseDTO<ApplyDTO> response = ResponseDTO.<ApplyDTO>builder().data(dtos).build();
@@ -129,32 +146,42 @@ public class ApplyController {
     // 로그인한 사용자만 사용 가능
     @PutMapping("/updateApply/{postId}")
     public ResponseEntity<?> updateApply(@AuthenticationPrincipal String memberId,
-            @PathVariable("postId") String postId, @RequestBody List<ApplyDTO> dtos) {
+            @PathVariable("postId") String postId, @RequestBody ApplyDTO dto) {
         try {
+            // 참여 요청 상태 변경
+            ApplyEntity apply = ApplyDTO.toEntity(dto);
+            ApplyEntity newEntity = applyService.findById(apply.getId());
+            newEntity.setState(apply.getState());
+            applyService.updateApply(newEntity);
 
-            List<ApplyEntity> requestEntities = new ArrayList<ApplyEntity>();
+            // 참여 상태 변경에 따라 모집 글 상태도 변경
+            PostEntity post = postRepository.findById(postId)
+                    .orElseThrow(() -> new EntityNotFoundException("Post not found"));
+            List<ApplyEntity> applies = post.getApplies();
 
-            // requestEntities에 갱신할 목록의 entity를 저장
-            for (ApplyDTO dto : dtos) {
-                ApplyEntity entity = ApplyDTO.toEntity(dto);
-                requestEntities.add(entity);
+            int count = 0;
+            for (ApplyEntity item : applies) {
+                if (item.getState().equals("참여 성공")) {
+                    count++;
+                }
             }
 
-            for (ApplyEntity entity : requestEntities) {
-                ApplyEntity newEntity = applyService.findById(entity.getId());
-                newEntity.setState(entity.getState());
-                applyService.updateApply(newEntity);
+            post.setRecruitState(count);
+            if (post.getRecruit() == count) {
+                post.setState("진행 중");
             }
+            postRepository.save(post);
 
-            List<ApplyEntity> entities = applyService.retrieveWriterApply(postId);
+            String message = "update successfully";
 
-            // entities를 dtos로 스트림 변환
-            List<ApplyDTO> responseDTOs = entities.stream().map(ApplyDTO::new).collect(Collectors.toList());
+            List<String> entities = new ArrayList<String>();
+            entities.add(message);
 
             // ResponseDTO 생성
-            ResponseDTO<ApplyDTO> response = ResponseDTO.<ApplyDTO>builder().data(responseDTOs).build();
+            ResponseDTO<String> response = ResponseDTO.<String>builder().data(entities).build();
 
             return ResponseEntity.ok().body(response);
+
         } catch (Exception e) {
             String error = e.getMessage();
             ResponseDTO<ApplyDTO> response = ResponseDTO.<ApplyDTO>builder().error(error).build();

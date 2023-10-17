@@ -27,6 +27,11 @@ public class ApplyEntity {
 
     private String state;
 
+    private String ownerEmail;
+    private String ownerName;
+
+    private String projectTitle;
+
     @ManyToOne
     @JoinColumn(columnDefinition = "member_id")
     @JsonBackReference

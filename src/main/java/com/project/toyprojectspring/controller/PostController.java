@@ -8,10 +8,12 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.apache.catalina.connector.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -145,6 +147,24 @@ public class PostController {
         return ResponseEntity.ok().body(response);
     }
 
+    // 모집 글 상세보기
+    // 로그인 하지 않아도 실행 가능
+    @GetMapping("/retrieveDetail/{postId}")
+    public ResponseEntity<?> retrieveDetail(@AuthenticationPrincipal String memberId, @PathVariable String postId) {
+
+        PostEntity post = postService.findById(postId);
+
+        // post를 dtos로 스트림 변환
+        PostDTO dto = new PostDTO(post);
+        List<PostDTO> dtos = new ArrayList<PostDTO>();
+        dtos.add(dto);
+
+        // ResponseDTO 생성
+        ResponseDTO<PostDTO> response = ResponseDTO.<PostDTO>builder().data(dtos).build();
+
+        return ResponseEntity.ok().body(response);
+    }
+
     // 내가 작성한 모집 글 보기
     @GetMapping("/myPost")
     public ResponseEntity<?> getMyPost(@AuthenticationPrincipal String memberId) {
@@ -154,10 +174,11 @@ public class PostController {
         List<PostEntity> entities = member.getPosts();
 
         // entities를 dtos로 스트림 변환
-        List<PostDTO> dtos = entities.stream().map(PostDTO::new).collect(Collectors.toList());
+        // List<PostDTO> dtos =
+        // entities.stream().map(PostDTO::new).collect(Collectors.toList());
 
         // ResponseDTO 생성
-        ResponseDTO<PostDTO> response = ResponseDTO.<PostDTO>builder().data(dtos).build();
+        ResponseDTO<PostEntity> response = ResponseDTO.<PostEntity>builder().data(entities).build();
 
         return ResponseEntity.ok().body(response);
     }
