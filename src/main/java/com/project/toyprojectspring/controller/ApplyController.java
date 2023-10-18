@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -179,6 +180,34 @@ public class ApplyController {
 
             // ResponseDTO 생성
             ResponseDTO<String> response = ResponseDTO.<String>builder().data(entities).build();
+
+            return ResponseEntity.ok().body(response);
+
+        } catch (Exception e) {
+            String error = e.getMessage();
+            ResponseDTO<ApplyDTO> response = ResponseDTO.<ApplyDTO>builder().error(error).build();
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+
+    // 참여 요청 삭제
+    // 로그인한 사용자만 사용 가능
+    @DeleteMapping("/deleteApply")
+    public ResponseEntity<?> deleteApply(@AuthenticationPrincipal String memberId, @RequestBody ApplyDTO apply) {
+        try {
+            ApplyEntity entity = ApplyDTO.toEntity(apply);
+            applyService.deleteApply(entity);
+
+            MemberEntity member = memberService.findById(memberId)
+                    .orElseThrow(() -> new EntityNotFoundException("Member not found"));
+
+            List<ApplyEntity> entities = member.getApplies();
+
+            // entities를 dtos로 스트림 변환
+            List<ApplyDTO> dtos = entities.stream().map(ApplyDTO::new).collect(Collectors.toList());
+
+            // ResponseDTO 생성
+            ResponseDTO<ApplyDTO> response = ResponseDTO.<ApplyDTO>builder().data(dtos).build();
 
             return ResponseEntity.ok().body(response);
 

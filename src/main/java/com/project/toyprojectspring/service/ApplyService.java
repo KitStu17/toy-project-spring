@@ -85,6 +85,11 @@ public class ApplyService {
                 .orElseThrow(() -> new EntityNotFoundException("Apply not found"));
     }
 
+    // 참여 요청 삭제
+    public void deleteApply(final ApplyEntity entity) {
+        appliesRepository.deleteById(entity.getId());
+    }
+
     // 참여 요청 유효성 확인
     public void validate(final ApplyEntity entity) {
         if (entity == null) {
