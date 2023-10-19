@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.project.toyprojectspring.dto.ApplyDTO;
-import com.project.toyprojectspring.dto.MemberDTO;
 import com.project.toyprojectspring.dto.ResponseDTO;
 import com.project.toyprojectspring.entity.ApplyEntity;
 import com.project.toyprojectspring.entity.MemberEntity;

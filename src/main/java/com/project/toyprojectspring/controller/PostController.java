@@ -6,10 +6,12 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.apache.catalina.connector.Response;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -130,6 +132,57 @@ public class PostController {
 
     }
 
+    // 모집 글 목록 검색(로그인한 유저)
+    // 로그인한 유저만 실행 가능
+    @PostMapping("/searchLoginPost/{category}")
+    public ResponseEntity<?> searchLoginPost(@AuthenticationPrincipal String memberId, @PathVariable String category,
+            @RequestBody Map<String, String> condition) {
+        // 모집 글 중 상태가 "모집 중"인 것만 가져오기
+        List<PostEntity> entities = postService.retrievePost();
+        List<PostEntity> newEntities = new ArrayList<PostEntity>();
+
+        // 로그인한 회원의 관심 스택(filter) 가져오기
+        MemberEntity member = memberService.findById(memberId)
+                .orElseThrow(() -> new EntityNotFoundException("Member not found"));
+        List<String> filter = member.getSkills();
+
+        // 회원의 관심 스택에 포함되는 모집 글만 가져오기
+        entities.removeIf((item) -> !hasCommonElements(filter, item.getStacks()));
+
+        if (!condition.get("context").equals("")) {
+            if (category.equals("none")) {
+                for (PostEntity post : entities) {
+                    if (post.getTitle().contains(condition.get("context"))
+                            || post.getMember().getName().contains(condition.get("context"))) {
+                        newEntities.add(post);
+                    }
+                }
+            } else if (category.equals("title")) {
+                for (PostEntity post : entities) {
+                    if (post.getTitle().contains(condition.get("context"))) {
+                        newEntities.add(post);
+                    }
+                }
+            } else if (category.equals("ownerName")) {
+                for (PostEntity post : entities) {
+                    if (post.getMember().getName().contains(condition.get("context"))) {
+                        newEntities.add(post);
+                    }
+                }
+            }
+        } else {
+            newEntities = entities;
+        }
+
+        // entities를 dtos로 스트림 변환
+        List<PostDTO> dtos = newEntities.stream().map(PostDTO::new).collect(Collectors.toList());
+
+        // ResponseDTO 생성
+        ResponseDTO<PostDTO> response = ResponseDTO.<PostDTO>builder().data(dtos).build();
+
+        return ResponseEntity.ok().body(response);
+    }
+
     // 모집 글 목록 가져오기(로그인하지 않은 유저)
     // 로그인 하지 않아도 실행 가능
     @GetMapping("/retrievePost")
@@ -140,6 +193,56 @@ public class PostController {
 
         // entities를 dtos로 스트림 변환
         List<PostDTO> dtos = entities.stream().map(PostDTO::new).collect(Collectors.toList());
+
+        // ResponseDTO 생성
+        ResponseDTO<PostDTO> response = ResponseDTO.<PostDTO>builder().data(dtos).build();
+
+        return ResponseEntity.ok().body(response);
+    }
+
+    // 모집 글 목록 검색(로그인하지 않은 유저)
+    // 로그인 하지 않아도 실행 가능
+    @PostMapping("/searchPost/{category}")
+    public ResponseEntity<?> searchPost(@AuthenticationPrincipal String memberId, @PathVariable String category,
+            @RequestBody Map<String, String> condition) {
+        // 모집 글 중 상태가 "모집 중"인 것만 가져오기
+        List<PostEntity> entities = postService.retrievePost();
+        List<PostEntity> newEntities = new ArrayList<PostEntity>();
+        // String state = "";
+
+        if (!condition.get("context").equals("")) {
+            if (category.equals("none")) {
+                for (PostEntity post : entities) {
+                    if (post.getTitle().contains(condition.get("context"))
+                            || post.getMember().getName().contains(condition.get("context"))) {
+                        newEntities.add(post);
+                    }
+                }
+            } else if (category.equals("title")) {
+                for (PostEntity post : entities) {
+                    if (post.getTitle().contains(condition.get("context"))) {
+                        newEntities.add(post);
+                    }
+                }
+            } else if (category.equals("ownerName")) {
+                for (PostEntity post : entities) {
+                    if (post.getMember().getName().contains(condition.get("context"))) {
+                        newEntities.add(post);
+                    }
+                }
+            }
+        } else {
+            newEntities = entities;
+        }
+
+        // List<String> result = new ArrayList<String>();
+        // result.add(state);
+
+        // ResponseDTO<String> response =
+        // ResponseDTO.<String>builder().data(result).build();
+
+        // entities를 dtos로 스트림 변환
+        List<PostDTO> dtos = newEntities.stream().map(PostDTO::new).collect(Collectors.toList());
 
         // ResponseDTO 생성
         ResponseDTO<PostDTO> response = ResponseDTO.<PostDTO>builder().data(dtos).build();
@@ -166,6 +269,7 @@ public class PostController {
     }
 
     // 내가 작성한 모집 글 보기
+    // 로그인한 유저만 실행 가능
     @GetMapping("/myPost")
     public ResponseEntity<?> getMyPost(@AuthenticationPrincipal String memberId) {
         // 로그인한 회원이 작성한 게시물 가져오기
@@ -184,6 +288,7 @@ public class PostController {
     }
 
     // 모집 글 상태 변경
+    // 로그인한 유저만 실행 가능
     @PostMapping("/updatePost")
     public ResponseEntity<?> updatePost(@AuthenticationPrincipal String memberId, @RequestBody PostDTO postDTO) {
         try {

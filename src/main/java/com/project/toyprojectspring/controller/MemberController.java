@@ -46,7 +46,8 @@ public class MemberController {
     private PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     // JWT 토큰으로 회원 정보 검색
-    // 디버그용
+    // 회원 정보 수정을 위해 사용
+    // 로그인한 유저만 실행 가능
     @GetMapping("/getMember")
     public ResponseEntity<?> retrieveMember(@AuthenticationPrincipal String memberId) {
         try {
@@ -60,7 +61,32 @@ public class MemberController {
         }
     }
 
-    // 회원 정보 수정
+    // 회원 정보 수정(비밀번호만)
+    // 로그인한 유저만 실행 가능
+    @PutMapping("/updateMemberPassword")
+    public ResponseEntity<?> updateMemberPassword(@AuthenticationPrincipal String memberId,
+            @RequestBody MemberDTO memberDTO) {
+        try {
+            MemberEntity member = memberService.findById(memberId)
+                    .orElseThrow(() -> new EntityNotFoundException("Member not found"));
+            member.setEmail(memberDTO.getEmail());
+            member.setPassword(passwordEncoder.encode(memberDTO.getPassword()));
+            member.setPosition(memberDTO.getPosition());
+            member.setSkills(memberDTO.getSkills());
+
+            MemberEntity responseEntity = memberService.updateMember(member)
+                    .orElseThrow(() -> new EntityNotFoundException("Member not found"));
+
+            return ResponseEntity.ok().body(responseEntity);
+        } catch (Exception e) {
+            ResponseDTO responseDTO = ResponseDTO.builder().error(e.getMessage()).build();
+
+            return ResponseEntity.badRequest().body(responseDTO);
+        }
+    }
+
+    // 회원 정보 수정(비밀번호만)
+    // 로그인한 유저만 실행 가능
     @PutMapping("/updateMember")
     public ResponseEntity<?> updateMember(@AuthenticationPrincipal String memberId,
             @RequestBody MemberDTO memberDTO) {
@@ -84,6 +110,7 @@ public class MemberController {
     }
 
     // 회원가입
+    // 로그인 하지 않아도 실행 가능
     @PostMapping("/signup")
     public ResponseEntity<?> registerMember(@RequestBody MemberDTO memberDTO) {
         try {
@@ -119,6 +146,7 @@ public class MemberController {
     }
 
     // 로그인
+    // 로그인 하지 않아도 실행 가능
     @PostMapping("/signin")
     public ResponseEntity<?> authenticate(@RequestBody MemberDTO memberDTO) {
         MemberEntity member = memberService.getByCredentials(memberDTO.getEmail(), memberDTO.getPassword(),
