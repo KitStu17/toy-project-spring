@@ -235,12 +235,6 @@ public class PostController {
             newEntities = entities;
         }
 
-        // List<String> result = new ArrayList<String>();
-        // result.add(state);
-
-        // ResponseDTO<String> response =
-        // ResponseDTO.<String>builder().data(result).build();
-
         // entities를 dtos로 스트림 변환
         List<PostDTO> dtos = newEntities.stream().map(PostDTO::new).collect(Collectors.toList());
 
