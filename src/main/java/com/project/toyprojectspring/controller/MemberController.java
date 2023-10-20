@@ -85,7 +85,7 @@ public class MemberController {
         }
     }
 
-    // 회원 정보 수정(비밀번호만)
+    // 회원 정보 수정(비밀번호 외)
     // 로그인한 유저만 실행 가능
     @PutMapping("/updateMember")
     public ResponseEntity<?> updateMember(@AuthenticationPrincipal String memberId,
