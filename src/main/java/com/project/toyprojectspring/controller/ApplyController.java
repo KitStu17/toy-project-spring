@@ -72,7 +72,7 @@ public class ApplyController {
                 ApplyEntity entity = applyService.addApply(applyEntity);
 
                 // 모집 글 작성자에게 이메일 전송
-                mailService.sendSimpleApplyMessage(memberEntity.getEmail(), postEntity, memberEntity);
+                mailService.sendSimpleApplyMessage(postEntity.getMember().getEmail(), postEntity, memberEntity);
 
                 List<ApplyEntity> entities = new ArrayList<ApplyEntity>();
                 entities.add(entity);

@@ -88,7 +88,7 @@ public class MailService {
         // 메세지 내용 삽입
         message.setText(msg, "utf-8", "html");
         // 메세지 송신자 이메일 설정
-        message.setFrom(new InternetAddress(id));
+        message.setFrom(new InternetAddress(member.getEmail()));
 
         return message;
     }
